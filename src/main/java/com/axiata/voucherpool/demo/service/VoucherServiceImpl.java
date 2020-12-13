@@ -17,6 +17,7 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,13 +82,13 @@ public class VoucherServiceImpl implements VoucherService {
 		Optional<Voucher> voucher = voucherRespository.findByCode(request.getVoucherCode());
 		if (voucher.isPresent()) {
 			Voucher vDb = voucher.get();
+			Date now = new Date();
 			if (!vDb.isUsed()) {
-				Date usedDate = new Date();
-				response.setUsedDate(usedDate);
+				response.setUsedDate(now);
 				response.setDiscountPercentage(vDb.getSpecialOffer().getPercentDiscount());
 
-				vDb.setUpdateDate(usedDate);
-				vDb.setUsedDate(usedDate);
+				vDb.setUpdateDate(now);
+				vDb.setUsedDate(now);
 				vDb.setUsed(true);
 
 				voucherRespository.saveAndFlush(vDb);
@@ -95,7 +96,8 @@ public class VoucherServiceImpl implements VoucherService {
 
 			if(request.getEmail() != null){
 				Recipient r = recipientRepository.findByEmail(request.getEmail());
-				List<Voucher> validVouchers = r.getVouchers().stream().filter(o -> !o.isUsed()).collect(Collectors.toList());
+				Predicate<Voucher> beforeExpiredUnusedVoucher = v -> !v.isUsed() && v.getExpiredDate().after(now);
+				List<Voucher> validVouchers = r.getVouchers().stream().filter(beforeExpiredUnusedVoucher).collect(Collectors.toList());
 				List<ValidVoucher> voucherList = new ArrayList<>();
 				for(Voucher v: validVouchers){
 					ValidVoucher validVoucher = new ValidVoucher();
