@@ -8,7 +8,7 @@ This is a simple demo of voucher pooling restful api to redeem voucher code. It 
 - H2
 
 
-You may use eclipse/intellij to setup the project locally and start to run it.
+You may use eclipse/intellij to setup the project and start to run it locally.
 
 This demo is used to show that redeem process.
 
